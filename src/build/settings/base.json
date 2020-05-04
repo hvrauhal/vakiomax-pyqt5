@@ -1,6 +1,6 @@
 {
     "app_name": "VakioMax4",
     "author": "Heikki Rauhala",
-    "main_module": "src/main/python/main.py",
+    "main_module": "src/main/python/vakiomax_pyqt5/main.py",
     "version": "0.0.0"
 }
