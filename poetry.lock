@@ -21,6 +21,14 @@ docs = ["sphinx", "zope.interface"]
 tests = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
 
 [[package]]
+category = "main"
+description = "Composable command line interface toolkit"
+name = "click"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "7.1.2"
+
+[[package]]
 category = "dev"
 description = "Cross-platform colored terminal text."
 marker = "sys_platform == \"win32\" and python_version != \"3.4\""
@@ -118,6 +126,19 @@ python-versions = ">=3.5"
 version = "12.7.2"
 
 [[package]]
+category = "main"
+description = "Tools to supplement the official PyQt5 wheels"
+name = "pyqt5-tools"
+optional = false
+python-versions = ">=3.5"
+version = "5.14.2.1.7b3"
+
+[package.dependencies]
+click = "*"
+pyqt5 = "5.14.2"
+python-dotenv = "*"
+
+[[package]]
 category = "dev"
 description = "pytest: simple powerful testing with Python"
 name = "pytest"
@@ -150,6 +171,17 @@ version = ">=4.0.0"
 testing = ["argcomplete", "hypothesis (>=3.56)", "nose", "requests", "mock"]
 
 [[package]]
+category = "main"
+description = "Add .env support to your django/flask apps in development and deployments"
+name = "python-dotenv"
+optional = false
+python-versions = "*"
+version = "0.13.0"
+
+[package.extras]
+cli = ["click (>=5.0)"]
+
+[[package]]
 category = "dev"
 description = "Python 2 and 3 compatibility utilities"
 name = "six"
@@ -179,7 +211,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "37b5c00a528a0326e8db087b4971dceb6598c053331c856c26cf27944900e24a"
+content-hash = "7229e67354006f77f90cd17d0645f0c6b698fa3c11c384f68fc86eb4dc745f58"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -190,6 +222,10 @@ atomicwrites = [
 attrs = [
     {file = "attrs-19.3.0-py2.py3-none-any.whl", hash = "sha256:08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c"},
     {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
+]
+click = [
+    {file = "click-7.1.2-py2.py3-none-any.whl", hash = "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"},
+    {file = "click-7.1.2.tar.gz", hash = "sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a"},
 ]
 colorama = [
     {file = "colorama-0.4.3-py2.py3-none-any.whl", hash = "sha256:7d73d2a99753107a36ac6b455ee49046802e59d9d076ef8e47b61499fa29afff"},
@@ -245,9 +281,23 @@ pyqt5-sip = [
     {file = "PyQt5_sip-12.7.2-cp38-cp38-win_amd64.whl", hash = "sha256:a8a6c0512641fc042726b6253b2d5f3f3f800098334d198d8ebdf337d85ab3d7"},
     {file = "PyQt5_sip-12.7.2.tar.gz", hash = "sha256:16a19b9f36985b8bff30b89fb8859d831713dd528fba5600563e36ff077960a2"},
 ]
+pyqt5-tools = [
+    {file = "pyqt5_tools-5.14.2.1.7b3-cp35-cp35m-manylinux2014_x86_64.whl", hash = "sha256:a8358e0b4a58e858e9381925fc72dff14fdf6ee848850be968dd8ebdc0a7fe0f"},
+    {file = "pyqt5_tools-5.14.2.1.7b3-cp35-cp35m-win_amd64.whl", hash = "sha256:9e555b7729e0f1c8a8c9621b7522802042be27648140b66685f5b78193bf5cab"},
+    {file = "pyqt5_tools-5.14.2.1.7b3-cp36-cp36m-manylinux2014_x86_64.whl", hash = "sha256:77eac7dfdcf7d5c44933574c9abcaa3d99ecf4d74ca87a60427323b1806ceded"},
+    {file = "pyqt5_tools-5.14.2.1.7b3-cp36-cp36m-win_amd64.whl", hash = "sha256:d43a019ff2455fb9fe18cd88fa9ca1fa94af21d4f18ba4fd1e3a6c09f665a1cb"},
+    {file = "pyqt5_tools-5.14.2.1.7b3-cp37-cp37m-manylinux2014_x86_64.whl", hash = "sha256:ae0dc9b9af3bcd2b2894599823c881d6584ede4d94b039333d5cd087c798ff96"},
+    {file = "pyqt5_tools-5.14.2.1.7b3-cp37-cp37m-win_amd64.whl", hash = "sha256:51d92b202d68a52b7f7185a4c5f37c28d7821ad851aad73a4801cfae380635f3"},
+    {file = "pyqt5_tools-5.14.2.1.7b3-cp38-cp38-manylinux2014_x86_64.whl", hash = "sha256:fe26f57cb4dea1ba947012243c6e38e54205c6a8372ffc3d0819a326e050a9e3"},
+    {file = "pyqt5_tools-5.14.2.1.7b3-cp38-cp38-win_amd64.whl", hash = "sha256:5465ce1ca9500e108916c79f774706e23867e6ee6e6936a5606a504ac2f0d124"},
+]
 pytest = [
     {file = "pytest-4.6.9-py2.py3-none-any.whl", hash = "sha256:c77a5f30a90e0ce24db9eaa14ddfd38d4afb5ea159309bdd2dae55b931bc9324"},
     {file = "pytest-4.6.9.tar.gz", hash = "sha256:19e8f75eac01dd3f211edd465b39efbcbdc8fc5f7866d7dd49fedb30d8adf339"},
+]
+python-dotenv = [
+    {file = "python-dotenv-0.13.0.tar.gz", hash = "sha256:3b9909bc96b0edc6b01586e1eed05e71174ef4e04c71da5786370cebea53ad74"},
+    {file = "python_dotenv-0.13.0-py2.py3-none-any.whl", hash = "sha256:25c0ff1a3e12f4bde8d592cc254ab075cfe734fc5dd989036716fd17ee7e5ec7"},
 ]
 six = [
     {file = "six-1.14.0-py2.py3-none-any.whl", hash = "sha256:8f3cd2e254d8f793e7f3d6d9df77b92252b52637291d0f0da013c76ea2724b6c"},
