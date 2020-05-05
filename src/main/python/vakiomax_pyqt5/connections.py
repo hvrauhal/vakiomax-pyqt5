@@ -38,7 +38,7 @@ def refresh_games(session):
 
 
 def send_games(session, coupons: Mapping):
-    r = session.post("https://www.veikkaus.fi/api/v1/sport-games/wagers/check", headers=headers,
+    r = session.post("https://www.veikkaus.fi/api/v1/sport-games/wagers", headers=headers,
                      json=coupons)
     if r.status_code == 200:
         print(f'Success: {r}')
