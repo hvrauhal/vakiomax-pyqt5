@@ -15,7 +15,7 @@ headers = {
 
 class LoginException(Exception):
     def __init__(self, msg, status_code):
-        super(msg)
+        self.msg = msg
         self.status_code = status_code
 
 
@@ -32,3 +32,4 @@ def login(username, password):
 
 def refresh_games(session):
     return session.get("https://www.veikkaus.fi/api/v1/sport-games/draws?game-names=SPORT", headers=headers).json()
+

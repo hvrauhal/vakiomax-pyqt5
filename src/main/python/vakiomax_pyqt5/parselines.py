@@ -47,7 +47,7 @@ def coupon_rows_to_wager_request(rows: str, draw_id: str, stake: str):
 
 
 @dataclass(frozen=True)
-class Option:
+class GameOption:
     id: str
     base_price: int
     name: str
@@ -56,5 +56,5 @@ class Option:
 
 def draws_to_options(draws: Mapping):
     open_draws = [foo for foo in draws['draws'] if foo['status'] == 'OPEN']
-    return [Option(i['id'], i['gameRuleSet']['basePrice'], i['name'], datetime.fromtimestamp(i['closeTime'] / 1000.0))
+    return [GameOption(i['id'], i['gameRuleSet']['basePrice'], i['name'], datetime.fromtimestamp(i['closeTime'] / 1000.0))
             for i in open_draws]

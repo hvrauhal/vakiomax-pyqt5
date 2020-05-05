@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime
 from pathlib import Path
 
-from vakiomax_pyqt5.parselines import coupon_rows_to_wager_request, draws_to_options, Option
+from vakiomax_pyqt5.parselines import coupon_rows_to_wager_request, draws_to_options, GameOption
 
 
 class TestParseLines(unittest.TestCase):
@@ -54,8 +54,8 @@ class TestApiParsing(unittest.TestCase):
     def test_sample_draw(self):
         draws_sample = json.loads((Path(os.path.dirname(__file__)) / 'sample_draws.json').read_text('utf-8'))
         self.assertEqual(
-            [Option(id='53961', base_price=10, name='Kaviovakio', close_time=datetime(2020, 5, 4, 20, 50)),
-             Option(id='53963', base_price=10, name='Counter-strike-vakio',
-                    close_time=datetime(2020, 5, 5, 15, 58)),
-             Option(id='53962', base_price=10, name='Futisvakio', close_time=datetime(2020, 5, 8, 16, 58))],
+            [GameOption(id='53961', base_price=10, name='Kaviovakio', close_time=datetime(2020, 5, 4, 20, 50)),
+             GameOption(id='53963', base_price=10, name='Counter-strike-vakio',
+                        close_time=datetime(2020, 5, 5, 15, 58)),
+             GameOption(id='53962', base_price=10, name='Futisvakio', close_time=datetime(2020, 5, 8, 16, 58))],
             draws_to_options(draws_sample))
