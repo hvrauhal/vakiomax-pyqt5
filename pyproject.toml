@@ -7,6 +7,7 @@ authors = ["Heikki Rauhala <heikki.rauhala@reaktor.fi>"]
 [tool.poetry.dependencies]
 python = "^3.7"
 PyQt5 = "^5.14.2"
+requests = "^2.23.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"

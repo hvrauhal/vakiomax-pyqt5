@@ -3,41 +3,98 @@
 
 import sys
 
-from PyQt5.QtWidgets import (QDialog, QComboBox, QLabel, QHBoxLayout, QGridLayout, QTextEdit, QPushButton)
+from PyQt5.QtWidgets import (QDialog, QComboBox, QLabel, QHBoxLayout, QGridLayout, QTextEdit, QPushButton, QLineEdit,
+                             QWidget, QVBoxLayout)
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
 
-from vakiomax_pyqt5.parselines import coupon_rows_to_wager_request
+from vakiomax_pyqt5.connections import login, refresh_games, LoginException
+from vakiomax_pyqt5.parselines import coupon_rows_to_wager_request, draws_to_options
 
 
 class VakioMax(QDialog):
+
+    def _login_layout(self):
+        login_container = QWidget()
+        login_layout = QHBoxLayout(login_container)
+        username = QLineEdit()
+        u_label = QLabel("&Käyttäjätunnus:")
+        u_label.setBuddy(username)
+
+        password = QLineEdit()
+        password.setEchoMode(QLineEdit.Password)
+        p_label = QLabel("Salasana:")
+        p_label.setBuddy(password)
+
+        login_layout.addWidget(u_label)
+        login_layout.addWidget(username)
+        login_layout.addWidget(p_label)
+        login_layout.addWidget(password)
+        login_btn = QPushButton('Login')
+        login_btn.setDefault(True)
+        login_btn.clicked.connect(self.do_login)
+        login_layout.addWidget(login_btn)
+        self.login_container = login_container
+        self.username = username
+        self.password = password
+        return login_container
+
     def __init__(self, parent=None):
+        self.session = None
         super(VakioMax, self).__init__(parent)
-        gameComboBox = QComboBox()
-        gameComboBox.addItems(['foo', 'bar'])
+
+        game_combo_box = QComboBox()
 
         game_label = QLabel("&Peli:")
-        game_label.setBuddy(gameComboBox)
+        game_label.setBuddy(game_combo_box)
+        game_selection_layout = QHBoxLayout()
+        game_selection_layout.addWidget(game_label)
+        game_selection_layout.addWidget(game_combo_box)
+        self.game_combo_box = game_combo_box
 
-        top_layout = QHBoxLayout()
-        top_layout.addWidget(game_label)
-        top_layout.addWidget(gameComboBox)
+        refresh_btn = QPushButton('&Päivitä pelit')
+        refresh_btn.setDefault(True)
+        refresh_btn.clicked.connect(self.do_refresh_games)
+        game_selection_layout.addWidget(refresh_btn)
+
+        main_layout = QVBoxLayout()
+
+        main_layout.addWidget(self._login_layout())
 
         text_edit = QTextEdit()
         text_edit.setLineWrapMode(QTextEdit.NoWrap)
         text_edit.setAcceptRichText(False)
-
-        main_layout = QGridLayout()
-        main_layout.addLayout(top_layout, 0, 0)
-        main_layout.addWidget(text_edit, 1, 0)
+        self.text_edit = text_edit
+        main_layout.addLayout(game_selection_layout)
+        main_layout.addWidget(text_edit)
 
         validate_btn = QPushButton("Tarkista rivit")
         validate_btn.setDefault(True)
-        validate_btn.clicked.connect(lambda: print(coupon_rows_to_wager_request(text_edit.toPlainText(), 'foo', 'bar')))
+        validate_btn.clicked.connect(self.do_check_rows)
         main_layout.addWidget(validate_btn)
 
         self.setLayout(main_layout)
         self.setWindowTitle("VakioMax 4")
 
+    def do_login(self):
+        u = self.username.text()
+        p = self.password.text()
+        print(f'would login with "{u}" "{p}"')
+        try:
+            self.session = login(u, p)
+            self.login_container.hide()
+        except LoginException as e:
+            print("Error")
+
+        pass
+
+    def do_refresh_games(self):
+        options = draws_to_options(refresh_games(self.session))
+        self.game_combo_box.clear()
+        for option in options:
+            self.game_combo_box.addItem(option.name, option)
+
+    def do_check_rows(self):
+        print(coupon_rows_to_wager_request(self.text_edit.toPlainText(), 'foo', 'bar'))
 
 if __name__ == '__main__':
     appctxt = ApplicationContext()

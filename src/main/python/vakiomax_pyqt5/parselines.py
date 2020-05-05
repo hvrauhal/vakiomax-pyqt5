@@ -1,4 +1,7 @@
 import re
+from collections import Mapping
+from dataclasses import dataclass
+from datetime import datetime
 
 
 def coupon_rows_to_wager_request(rows: str, draw_id: str, stake: str):
@@ -41,3 +44,17 @@ def coupon_rows_to_wager_request(rows: str, draw_id: str, stake: str):
     selections = list(map(out_comes_to_selections, outcomes))
     request_objs = map(selections_to_sport_wager_request_obj, selections)
     return list(request_objs)
+
+
+@dataclass(frozen=True)
+class Option():
+    id: str
+    base_price: str
+    name: str
+    close_time: datetime
+
+
+def draws_to_options(draws: Mapping):
+    open_draws = [foo for foo in draws['draws'] if foo['status'] == 'OPEN']
+    return [Option(i['id'], i['gameRuleSet']['basePrice'], i['name'], datetime.fromtimestamp(i['closeTime'] / 1000.0))
+            for i in open_draws]
