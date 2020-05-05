@@ -13,6 +13,18 @@ from vakiomax_pyqt5.parselines import coupon_rows_to_wager_request, draws_to_opt
 
 class VakioMax(QDialog):
 
+    def __init__(self, parent=None):
+        self.session = None
+        super(VakioMax, self).__init__(parent)
+
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self._login_layout())
+        main_layout.addWidget(self._game_layout())
+        self._connect_events()
+
+        self.setLayout(main_layout)
+        self.setWindowTitle("VakioMax 4")
+
     def _login_layout(self):
         login_container = QWidget()
         login_layout = QHBoxLayout(login_container)
@@ -31,10 +43,10 @@ class VakioMax(QDialog):
         login_layout.addWidget(password)
         login_btn = QPushButton('Login')
         login_btn.setDefault(True)
-        login_btn.clicked.connect(self.do_login)
         login_layout.addWidget(login_btn)
 
         self.login_container = login_container
+        self.login_btn = login_btn
         self.username = username
         self.password = password
         return login_container
@@ -61,23 +73,17 @@ class VakioMax(QDialog):
 
         validate_btn = QPushButton("Tarkista rivit")
         validate_btn.setDefault(True)
-        validate_btn.clicked.connect(self.do_check_rows)
+        self.validate_btn = validate_btn
         game_layout.addWidget(validate_btn)
 
         self.game_combo_box = game_combo_box
         self.game_layout_container = game_layout_container
         return game_layout_container
 
-    def __init__(self, parent=None):
-        self.session = None
-        super(VakioMax, self).__init__(parent)
+    def _connect_events(self):
+        self.login_btn.clicked.connect(self.do_login)
+        self.validate_btn.clicked.connect(self.do_check_rows)
 
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self._login_layout())
-        main_layout.addWidget(self._game_layout())
-
-        self.setLayout(main_layout)
-        self.setWindowTitle("VakioMax 4")
 
     def do_login(self):
         u = self.username.text()
@@ -87,8 +93,9 @@ class VakioMax(QDialog):
             self.session = login(u, p)
             self.login_container.hide()
             self.do_refresh_games()
-            self.game_layout_container.setFocus()
             self.game_layout_container.setDisabled(False)
+            self.game_combo_box.setFocus()
+            self.game_layout_container.show()
         except LoginException as e:
             print("Error")
 
