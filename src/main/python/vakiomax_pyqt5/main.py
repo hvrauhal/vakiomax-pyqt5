@@ -3,7 +3,7 @@
 
 import sys
 
-from PyQt5.QtWidgets import (QDialog, QComboBox, QLabel, QHBoxLayout, QGridLayout, QTextEdit, QPushButton, QLineEdit,
+from PyQt5.QtWidgets import (QDialog, QComboBox, QLabel, QHBoxLayout, QTextEdit, QPushButton, QLineEdit,
                              QWidget, QVBoxLayout)
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
 
@@ -33,14 +33,16 @@ class VakioMax(QDialog):
         login_btn.setDefault(True)
         login_btn.clicked.connect(self.do_login)
         login_layout.addWidget(login_btn)
+
         self.login_container = login_container
         self.username = username
         self.password = password
         return login_container
 
-    def __init__(self, parent=None):
-        self.session = None
-        super(VakioMax, self).__init__(parent)
+    def _game_layout(self):
+        game_layout_container = QWidget()
+        game_layout_container.setDisabled(True)
+        game_layout = QVBoxLayout(game_layout_container)
 
         game_combo_box = QComboBox()
 
@@ -49,28 +51,30 @@ class VakioMax(QDialog):
         game_selection_layout = QHBoxLayout()
         game_selection_layout.addWidget(game_label)
         game_selection_layout.addWidget(game_combo_box)
-        self.game_combo_box = game_combo_box
-
-        refresh_btn = QPushButton('&Päivitä pelit')
-        refresh_btn.setDefault(True)
-        refresh_btn.clicked.connect(self.do_refresh_games)
-        game_selection_layout.addWidget(refresh_btn)
-
-        main_layout = QVBoxLayout()
-
-        main_layout.addWidget(self._login_layout())
 
         text_edit = QTextEdit()
         text_edit.setLineWrapMode(QTextEdit.NoWrap)
         text_edit.setAcceptRichText(False)
         self.text_edit = text_edit
-        main_layout.addLayout(game_selection_layout)
-        main_layout.addWidget(text_edit)
+        game_layout.addLayout(game_selection_layout)
+        game_layout.addWidget(text_edit)
 
         validate_btn = QPushButton("Tarkista rivit")
         validate_btn.setDefault(True)
         validate_btn.clicked.connect(self.do_check_rows)
-        main_layout.addWidget(validate_btn)
+        game_layout.addWidget(validate_btn)
+
+        self.game_combo_box = game_combo_box
+        self.game_layout_container = game_layout_container
+        return game_layout_container
+
+    def __init__(self, parent=None):
+        self.session = None
+        super(VakioMax, self).__init__(parent)
+
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self._login_layout())
+        main_layout.addWidget(self._game_layout())
 
         self.setLayout(main_layout)
         self.setWindowTitle("VakioMax 4")
@@ -82,6 +86,9 @@ class VakioMax(QDialog):
         try:
             self.session = login(u, p)
             self.login_container.hide()
+            self.do_refresh_games()
+            self.game_layout_container.setFocus()
+            self.game_layout_container.setDisabled(False)
         except LoginException as e:
             print("Error")
 
@@ -95,6 +102,7 @@ class VakioMax(QDialog):
 
     def do_check_rows(self):
         print(coupon_rows_to_wager_request(self.text_edit.toPlainText(), 'foo', 'bar'))
+
 
 if __name__ == '__main__':
     appctxt = ApplicationContext()
