@@ -47,9 +47,9 @@ def coupon_rows_to_wager_request(rows: str, draw_id: str, stake: str):
 
 
 @dataclass(frozen=True)
-class Option():
+class Option:
     id: str
-    base_price: str
+    base_price: int
     name: str
     close_time: datetime
 
