@@ -3,6 +3,7 @@
 
 import sys
 
+from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtWidgets import (QDialog, QComboBox, QLabel, QHBoxLayout, QTextEdit, QPushButton, QLineEdit,
                              QWidget, QVBoxLayout, QMessageBox)
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
@@ -67,13 +68,16 @@ class VakioMax(QDialog):
         game_send_layout_container = QWidget()
         game_send_layout = QVBoxLayout(game_send_layout_container)
         text_edit = QTextEdit()
+        font: QFont = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+        font.setPointSize(12)
+        text_edit.setFont(font)
         text_edit.setLineWrapMode(QTextEdit.NoWrap)
         text_edit.setAcceptRichText(False)
         self.text_edit = text_edit
         game_send_layout.addWidget(text_edit)
         self.game_send_layout_container = game_send_layout_container
 
-        send_btn = QPushButton("Lähetä rivit")
+        send_btn = QPushButton("Osta rivit")
         send_btn.setDefault(True)
         self.send_btn = send_btn
         game_send_layout.addWidget(send_btn)
