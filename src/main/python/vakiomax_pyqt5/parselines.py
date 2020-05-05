@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 
-def coupon_rows_to_wager_request(rows: str, draw_id: str, stake: str):
+def coupon_rows_to_wager_requests(rows: str, draw_id: str, stake: int):
     def selections_to_sport_wager_request_obj(selections_):
         return {
             "type": "NORMAL",
@@ -52,9 +52,15 @@ class GameOption:
     base_price: int
     name: str
     close_time: datetime
+    rows_count: int
 
 
 def draws_to_options(draws: Mapping):
     open_draws = [foo for foo in draws['draws'] if foo['status'] == 'OPEN']
-    return [GameOption(i['id'], i['gameRuleSet']['basePrice'], i['name'], datetime.fromtimestamp(i['closeTime'] / 1000.0))
-            for i in open_draws]
+    return [
+        GameOption(id=i['id'],
+                   base_price=i['gameRuleSet']['basePrice'],
+                   name=i['name'],
+                   close_time=datetime.fromtimestamp(i['closeTime'] / 1000.0),
+                   rows_count=len(i['rows']))
+        for i in open_draws]

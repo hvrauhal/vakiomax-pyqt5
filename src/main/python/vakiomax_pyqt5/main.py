@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import (QDialog, QComboBox, QLabel, QHBoxLayout, QTextEdit,
                              QWidget, QVBoxLayout, QMessageBox)
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
 
-from vakiomax_pyqt5.connections import login, refresh_games, LoginException
-from vakiomax_pyqt5.parselines import coupon_rows_to_wager_request, draws_to_options, GameOption
+from vakiomax_pyqt5.connections import login, refresh_games, ConnectionException, send_games
+from vakiomax_pyqt5.parselines import coupon_rows_to_wager_requests, draws_to_options, GameOption
 
 
 class VakioMax(QDialog):
@@ -73,10 +73,10 @@ class VakioMax(QDialog):
         game_send_layout.addWidget(text_edit)
         self.game_send_layout_container = game_send_layout_container
 
-        validate_btn = QPushButton("Tarkista rivit")
-        validate_btn.setDefault(True)
-        self.validate_btn = validate_btn
-        game_send_layout.addWidget(validate_btn)
+        send_btn = QPushButton("Lähetä rivit")
+        send_btn.setDefault(True)
+        self.send_btn = send_btn
+        game_send_layout.addWidget(send_btn)
         game_layout.addLayout(game_selection_layout)
         game_layout.addWidget(game_send_layout_container)
 
@@ -86,12 +86,29 @@ class VakioMax(QDialog):
 
     def _connect_events(self):
         self.login_btn.clicked.connect(self.do_login)
-        self.validate_btn.clicked.connect(self.do_check_rows)
+        self.send_btn.clicked.connect(self.do_send_rows)
         self.game_combo_box.currentIndexChanged.connect(self.enable_text_when_value_selected)
+        self.game_combo_box.currentIndexChanged.connect(self.check_row_validity)
+        self.text_edit.textChanged.connect(self.check_row_validity)
+
+    def check_row_validity(self):
+        current_game_option: GameOption = self.game_combo_box.currentData()
+        current_text = self.text_edit.toPlainText()
+        if not current_game_option:
+            self.send_btn.setEnabled(False)
+            return
+        parsed_coupons = coupon_rows_to_wager_requests(current_text, current_game_option.id,
+                                                       current_game_option.base_price)
+        is_valid = True if parsed_coupons else False
+        for coupon in parsed_coupons:
+            selections_ = coupon['selections']
+            for s in selections_:
+                is_valid &= len(s['outcomes']) == current_game_option.rows_count
+        self.send_btn.setEnabled(is_valid)
 
     def enable_text_when_value_selected(self):
         data = self.game_combo_box.currentData()
-        self.game_send_layout_container.setDisabled(False if data else True)
+        self.game_send_layout_container.setEnabled(True if data else False)
 
     def do_login(self):
         u = self.username.text()
@@ -101,10 +118,11 @@ class VakioMax(QDialog):
             self.session = login(u, p)
             self.login_container.hide()
             self.do_refresh_games()
-            self.game_layout_container.setDisabled(False)
+            self.game_layout_container.setEnabled(True)
+            self.send_btn.setEnabled(False)
             self.game_combo_box.setFocus()
             self.game_layout_container.show()
-        except LoginException as e:
+        except ConnectionException as e:
             QMessageBox.warning(self, "Kirjautumisvirhe", f"Kirjautuminen epäonnistui:\n{e.msg} {e.status_code}",
                                 QMessageBox.Ok)
 
@@ -117,10 +135,28 @@ class VakioMax(QDialog):
         for option in options:
             self.game_combo_box.addItem(option.name, option)
 
-    def do_check_rows(self):
+    def do_send_rows(self):
         selected_option: GameOption = self.game_combo_box.currentData()
         print(selected_option)
-        print(coupon_rows_to_wager_request(self.text_edit.toPlainText(), 'foo', 'bar'))
+        coupons = coupon_rows_to_wager_requests(self.text_edit.toPlainText(), selected_option.id,
+                                                selected_option.base_price)
+
+        coupons_in_chunks = chunks(coupons, 25)
+        try:
+            for chunk in coupons_in_chunks:
+                send_games(self.session, chunk)
+            QMessageBox.information(self, "Pelit ostettu", f"{len(coupons)} peliä ostettu onnistuneesti")
+            self.text_edit.clear()
+        except ConnectionException as e:
+            QMessageBox.warning(self, "Lähetysvirhe", f"Pelien lähetys epäonnistui:\n{e.msg} {e.status_code}",
+                                QMessageBox.Ok)
+
+
+
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
 
 if __name__ == '__main__':

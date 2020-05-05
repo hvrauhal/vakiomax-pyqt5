@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime
 from pathlib import Path
 
-from vakiomax_pyqt5.parselines import coupon_rows_to_wager_request, draws_to_options, GameOption
+from vakiomax_pyqt5.parselines import coupon_rows_to_wager_requests, draws_to_options, GameOption
 
 
 class TestParseLines(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestParseLines(unittest.TestCase):
                                                         {'away': {'selected': True}}],
                                            'systemBetType': 'SYSTEM'}],
                            'stake': 'the_stake',
-                           'type': 'NORMAL'}], coupon_rows_to_wager_request('1x2', 'the_drawId', 'the_stake'))
+                           'type': 'NORMAL'}], coupon_rows_to_wager_requests('1x2', 'the_drawId', 'the_stake'))
 
     def test_extra_stuff(self):
         self.assertEqual([{'drawId': 'the_drawId',
@@ -27,7 +27,7 @@ class TestParseLines(unittest.TestCase):
                                            'systemBetType': 'SYSTEM'}],
                            'stake': 'the_stake',
                            'type': 'NORMAL'}],
-                         coupon_rows_to_wager_request('   1bbbxfff2\n\n', 'the_drawId', 'the_stake'))
+                         coupon_rows_to_wager_requests('   1bbbxfff2\n\n', 'the_drawId', 'the_stake'))
 
     def test_rows(self):
         self.assertEqual([{'drawId': 'the_drawId',
@@ -47,7 +47,7 @@ class TestParseLines(unittest.TestCase):
                            'selections': [{'outcomes': [{'away': {'selected': True}}],
                                            'systemBetType': 'SYSTEM'}],
                            'stake': 'the_stake',
-                           'type': 'NORMAL'}], coupon_rows_to_wager_request('1\nx\n2', 'the_drawId', 'the_stake'))
+                           'type': 'NORMAL'}], coupon_rows_to_wager_requests('1\nx\n2', 'the_drawId', 'the_stake'))
 
 
 class TestApiParsing(unittest.TestCase):
