@@ -97,7 +97,7 @@ class VakioMax(QDialog):
 
     def check_row_validity(self):
         current_game_option: GameOption = self.game_combo_box.currentData()
-        current_text = self.text_edit.toPlainText()
+        current_text = self.text_edit.toPlainText().lower()
         if not current_game_option:
             self.send_btn.setEnabled(False)
             return
