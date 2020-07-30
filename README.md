@@ -2,11 +2,16 @@
 
 This time with PyQt5
 
-Use poetry:
+Use [pyenv](https://github.com/pyenv/pyenv#installation):
 
+    env PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install 3.7.8
+
+Then use poetry:
+
+    poetry install
     poetry shell
 
-Run:
+Inside the virtualenv, use fbs:
 
     fbs run
 

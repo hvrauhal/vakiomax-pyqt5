@@ -5,7 +5,7 @@ description = ""
 authors = ["Heikki Rauhala <heikki.rauhala@reaktor.fi>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "~3.7"
 PyQt5 = "^5.14.2"
 requests = "^2.23.0"
 fbs = "^0.8.9"
