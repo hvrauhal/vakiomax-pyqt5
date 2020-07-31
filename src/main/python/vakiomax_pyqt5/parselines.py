@@ -36,8 +36,8 @@ def coupon_rows_to_wager_requests(rows: str, draw_id: str, stake: int):
                 "selected": True
             }
         }
-
-    split_rows = re.split(r'[\r\n]', rows)
+    lower_rows = rows.lower()
+    split_rows = re.split(r'[\r\n]', lower_rows)
     not_empties = filter(lambda item: item, split_rows)
     cleaned_up_rows = map(clean_up_row_string, not_empties)
     outcomes = map(row_to_outcomes, cleaned_up_rows)
