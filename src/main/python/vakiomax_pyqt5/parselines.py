@@ -4,51 +4,34 @@ from dataclasses import dataclass
 from datetime import datetime
 
 
-def coupon_rows_to_wager_requests(rows: str, draw_id: str, stake: int):
-    def selections_to_sport_wager_request_obj(selections_):
-        return {
-            "type": "NORMAL",
-            "drawId": draw_id,
-            "gameName": "SPORT",
-            "selections": selections_,
-            "stake": stake
-        }
-
-    def out_comes_to_selections(oc):
-        return [
-            {'systemBetType': 'SYSTEM', 'outcomes': oc}
-        ]
-
+def coupon_rows_to_wager_requests(rows: str, list_index: str, stake: int):
     def clean_up_row_string(r):
-        return re.sub(r"[^1xX2]", '', r)
+        return re.sub(r"[^1X2]", '', r)
 
-    def row_to_outcomes(r):
-        return list(map(char_to_selection, r))
+    def row_to_board(r):
+        return {'betType': 'Regular', 'stake': stake, 'selections': list(map(char_to_outcomes, r))}
 
-    def char_to_selection(c):
-        char_to_selection_map = {
-            '1': 'home',
-            'x': 'tie',
-            '2': 'away'
-        }
+    def char_to_outcomes(c):
         return {
-            char_to_selection_map[c]: {
-                "selected": True
-            }
+            'outcomes': [c]
         }
-    lower_rows = rows.lower()
-    split_rows = re.split(r'[\r\n]', lower_rows)
+
+    upper_rows = rows.upper()
+    split_rows = re.split(r'[\r\n]', upper_rows)
     not_empties = filter(lambda item: item, split_rows)
     cleaned_up_rows = map(clean_up_row_string, not_empties)
-    outcomes = map(row_to_outcomes, cleaned_up_rows)
-    selections = list(map(out_comes_to_selections, outcomes))
-    request_objs = map(selections_to_sport_wager_request_obj, selections)
-    return list(request_objs)
+    boards = list(map(row_to_board, cleaned_up_rows))
+    return {
+        "listIndex": list_index,
+        "gameName": "SPORT",
+        "boards": boards,
+        "price": sum([board['stake'] for board in boards])
+    }
 
 
 @dataclass(frozen=True)
 class GameOption:
-    id: str
+    list_index: str
     base_price: int
     name: str
     close_time: datetime
@@ -56,9 +39,9 @@ class GameOption:
 
 
 def draws_to_options(draws: Mapping):
-    open_draws = [foo for foo in draws['draws'] if foo['status'] == 'OPEN']
+    open_draws = (d for d in draws if d['status'] == 'OPEN')
     return [
-        GameOption(id=i['id'],
+        GameOption(list_index=i['listIndex'],
                    base_price=i['gameRuleSet']['basePrice'],
                    name=i['name'],
                    close_time=datetime.fromtimestamp(i['closeTime'] / 1000.0),

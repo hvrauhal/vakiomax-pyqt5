@@ -10,7 +10,7 @@ host = "https://www.veikkaus.fi"
 headers = {
     'Content-type': 'application/json',
     'Accept': 'application/json',
-    'X-ESA-APi-Key': 'ROBOT'
+    'X-ESA-API-Key': 'ROBOT'
 }
 
 
@@ -32,16 +32,18 @@ def login(username, password):
 
 
 def refresh_games(session):
-    json = session.get("https://www.veikkaus.fi/api/v1/sport-games/draws?game-names=SPORT", headers=headers).json()
+    json = session.get("https://www.veikkaus.fi/api/sport-open-games/v1/games/SPORT/draws", headers=headers).json()
     pprint(json)
     return json
 
 
 def send_games(session, coupons: Mapping):
-    r = session.post("https://www.veikkaus.fi/api/v1/sport-games/wagers", headers=headers,
+    print(f'Sending: {len(coupons["boards"])} boards')
+    r = session.post("https://www.veikkaus.fi/api/sport-interactive-wager/v1/tickets", headers=headers,
                      json=coupons)
     if r.status_code == 200:
         print(f'Success: {r}')
     else:
+        print(f'Failed sending: {coupons}')
         raise ConnectionException(f'Sending coupons failed {r.status_code} {r.json()}', r.status_code)
     return r

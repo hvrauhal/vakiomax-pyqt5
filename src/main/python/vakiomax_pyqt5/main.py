@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-
+import re
 import sys
 
 from PyQt5.QtGui import QFontDatabase, QFont
@@ -101,13 +100,12 @@ class VakioMax(QDialog):
         if not current_game_option:
             self.send_btn.setEnabled(False)
             return
-        parsed_coupons = coupon_rows_to_wager_requests(current_text, current_game_option.id,
+        parsed_coupon = coupon_rows_to_wager_requests(current_text, current_game_option.list_index,
                                                        current_game_option.base_price)
-        is_valid = True if parsed_coupons else False
-        for coupon in parsed_coupons:
-            selections_ = coupon['selections']
-            for s in selections_:
-                is_valid &= len(s['outcomes']) == current_game_option.rows_count
+        is_valid = True if parsed_coupon else False
+        boards_ = parsed_coupon['boards']
+        for board in boards_:
+            is_valid &= len(board['selections']) == current_game_option.rows_count
         self.send_btn.setEnabled(is_valid)
 
     def enable_text_when_value_selected(self):
@@ -142,19 +140,22 @@ class VakioMax(QDialog):
     def do_send_rows(self):
         selected_option: GameOption = self.game_combo_box.currentData()
         print(selected_option)
-        coupons = coupon_rows_to_wager_requests(self.text_edit.toPlainText(), selected_option.id,
-                                                selected_option.base_price)
+        rows_text = self.text_edit.toPlainText()
+        split_rows = re.split(r'[\r\n]', rows_text.strip())
+        rows_in_chunks = chunks(split_rows, 10)
+        coupons = [coupon_rows_to_wager_requests('\n'.join(rows), selected_option.list_index,
+                                                 selected_option.base_price) for rows in rows_in_chunks]
 
-        coupons_in_chunks = chunks(coupons, 25)
         try:
-            for chunk in coupons_in_chunks:
-                send_games(self.session, chunk)
-            QMessageBox.information(self, "Pelit ostettu", f"{len(coupons)} peliä ostettu onnistuneesti")
+            for coupon in coupons:
+                send_games(self.session, coupon)
+            QMessageBox.information(self, "Pelit ostettu", f"{len(coupons)} kuponkia ostettu onnistuneesti")
             self.text_edit.clear()
         except ConnectionException as e:
-            QMessageBox.warning(self, "Lähetysvirhe", f"Pelien lähetys epäonnistui:\n{e.msg} {e.status_code}",
+            error_message = f"Pelien lähetys epäonnistui:\n{e.msg} {e.status_code}"
+            print(error_message)
+            QMessageBox.warning(self, "Lähetysvirhe", error_message,
                                 QMessageBox.Ok)
-
 
 
 def chunks(lst, n):
