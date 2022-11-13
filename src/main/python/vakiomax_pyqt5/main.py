@@ -1,7 +1,11 @@
 #!/usr/bin/env python
+import configparser
+import os
 import re
 import sys
+from pathlib import Path
 
+import keyring
 from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtWidgets import (QDialog, QComboBox, QLabel, QHBoxLayout, QTextEdit, QPushButton, QLineEdit,
                              QWidget, QVBoxLayout, QMessageBox)
@@ -21,6 +25,7 @@ class VakioMax(QDialog):
         main_layout.addWidget(self._login_layout())
         main_layout.addWidget(self._game_layout())
         self._connect_events()
+        self._prepare_user_and_pass()
 
         self.setLayout(main_layout)
         self.setWindowTitle("VakioMax 4")
@@ -94,6 +99,14 @@ class VakioMax(QDialog):
         self.game_combo_box.currentIndexChanged.connect(self.check_row_validity)
         self.text_edit.textChanged.connect(self.check_row_validity)
 
+    def _prepare_user_and_pass(self):
+        username = get_username()
+        if username:
+            self.username.setText(username)
+            password = get_password(username)
+            if password:
+                self.password.setText(password)
+
     def check_row_validity(self):
         current_game_option: GameOption = self.game_combo_box.currentData()
         current_text = self.text_edit.toPlainText()
@@ -101,7 +114,7 @@ class VakioMax(QDialog):
             self.send_btn.setEnabled(False)
             return
         parsed_coupon = coupon_rows_to_wager_requests(current_text, current_game_option.list_index,
-                                                       current_game_option.base_price)
+                                                      current_game_option.base_price)
         is_valid = True if parsed_coupon else False
         boards_ = parsed_coupon['boards']
         for board in boards_:
@@ -115,7 +128,8 @@ class VakioMax(QDialog):
     def do_login(self):
         u = self.username.text()
         p = self.password.text()
-        print(f'would login with "{u}" "{p}"')
+        print(f'trying login with {u}')
+        set_username(u)
         try:
             self.session = login(u, p)
             self.login_container.hide()
@@ -124,11 +138,10 @@ class VakioMax(QDialog):
             self.send_btn.setEnabled(False)
             self.game_combo_box.setFocus()
             self.game_layout_container.show()
+            set_password(u, p)
         except ConnectionException as e:
             QMessageBox.warning(self, "Kirjautumisvirhe", f"Kirjautuminen epäonnistui:\n{e.msg} {e.status_code}",
                                 QMessageBox.Ok)
-
-        pass
 
     def do_refresh_games(self):
         options = draws_to_options(refresh_games(self.session))
@@ -162,6 +175,42 @@ def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
+
+
+app_name = 'vakiomax4-pyqt5'
+home_path = os.environ['HOME']
+app_home = (Path(home_path) / 'Library' / 'Application Support' / app_name)
+
+
+def get_username():
+    config = configparser.ConfigParser()
+    config_file = (app_home / 'config.ini')
+    if config_file.exists():
+        config.read(config_file)
+        if 'user' in config:
+            return config['user'].get('username')
+    return None
+
+
+def set_username(username):
+    config = configparser.ConfigParser()
+    app_home.mkdir(parents=True, exist_ok=True)
+    config_file = (app_home / 'config.ini')
+    if config_file.exists():
+        config.read(config_file)
+        if 'user' not in config:
+            config['user'] = {}
+        config['user']['username'] = username
+    with config_file.open('w') as open_cfg_file:
+        config.write(open_cfg_file)
+
+
+def set_password(username, password):
+    keyring.set_password(app_name, username, password)
+
+
+def get_password(username):
+    return keyring.get_password(app_name, username)
 
 
 if __name__ == '__main__':
