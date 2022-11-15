@@ -4,8 +4,8 @@ import os
 import re
 import sys
 from pathlib import Path
+import subprocess
 
-import keyring
 from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtWidgets import (QDialog, QComboBox, QLabel, QHBoxLayout, QTextEdit, QPushButton, QLineEdit,
                              QWidget, QVBoxLayout, QMessageBox)
@@ -206,11 +206,14 @@ def set_username(username):
 
 
 def set_password(username, password):
-    keyring.set_password(app_name, username, password)
+    pass
 
 
 def get_password(username):
-    return keyring.get_password(app_name, username)
+    the_pwd = subprocess.run(['security', 'find-generic-password', '-w', '-s', app_name, '-a', username],
+                             capture_output=True).stdout
+    print(f'password: "{the_pwd}"')
+    return the_pwd
 
 
 if __name__ == '__main__':
