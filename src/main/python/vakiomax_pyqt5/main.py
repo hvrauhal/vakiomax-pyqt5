@@ -4,7 +4,6 @@ import os
 import re
 import sys
 from pathlib import Path
-import subprocess
 
 from PyQt5.QtGui import QFontDatabase, QFont
 from PyQt5.QtWidgets import (QDialog, QComboBox, QLabel, QHBoxLayout, QTextEdit, QPushButton, QLineEdit,
@@ -13,7 +12,7 @@ from fbs_runtime.application_context.PyQt5 import ApplicationContext
 
 from vakiomax_pyqt5.connections import login, refresh_games, ConnectionException, send_games
 from vakiomax_pyqt5.parselines import coupon_rows_to_wager_requests, draws_to_options, GameOption
-
+from vakiomax_pyqt5.passwords import set_password, get_password
 
 class VakioMax(QDialog):
 
@@ -205,15 +204,6 @@ def set_username(username):
         config.write(open_cfg_file)
 
 
-def set_password(username, password):
-    pass
-
-
-def get_password(username):
-    the_pwd = subprocess.run(['security', 'find-generic-password', '-w', '-s', app_name, '-a', username],
-                             capture_output=True).stdout
-    print(f'password: "{the_pwd}"')
-    return the_pwd
 
 
 if __name__ == '__main__':
