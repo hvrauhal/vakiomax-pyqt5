@@ -6,13 +6,74 @@ import sys
 from pathlib import Path
 
 from PyQt5.QtGui import QFontDatabase, QFont
-from PyQt5.QtWidgets import (QApplication, QDialog, QComboBox, QLabel, QHBoxLayout, QTextEdit, QPushButton, QLineEdit,
+from PyQt5.QtWidgets import (QApplication, QDialog, QComboBox, QFormLayout, QLabel, QHBoxLayout, QTextEdit, QPushButton, QLineEdit,
                              QWidget, QVBoxLayout, QMessageBox)
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
 
 from vakiomax_pyqt5.connections import login, refresh_games, ConnectionException, send_games
 from vakiomax_pyqt5.parselines import coupon_rows_to_wager_requests, draws_to_options, GameOption
 from vakiomax_pyqt5.passwords import set_password, get_password
+
+class LoginDialog(QDialog):
+    def __init__(self, appWindow: QDialog, parent=None):
+        super(LoginDialog, self).__init__(parent)
+
+        self.appWindow = appWindow
+
+        login_layout = QVBoxLayout()
+        login_layout.addWidget(self._login_layout())
+        self._connect_events()
+        self._prepare_user_and_pass()
+
+        self.setLayout(login_layout)
+        self.setWindowTitle("VakioMax 4")
+
+    def _login_layout(self):
+        login_container = QWidget()
+        login_layout = QFormLayout(login_container)
+        username = QLineEdit()
+        login_layout.addRow("&Käyttäjätunnus:", username)
+
+        password = QLineEdit()
+        password.setFixedWidth(250)
+        password.setEchoMode(QLineEdit.Password)
+        login_layout.addRow("Salasana:", password)
+
+        login_btn = QPushButton('Login')
+        login_layout.addRow(login_btn)
+
+        self.login_container = login_container
+        self.login_btn = login_btn
+        self.username = username
+        self.password = password
+        return login_container
+
+    def _connect_events(self):
+        self.login_btn.clicked.connect(self.do_login)
+
+    def do_login(self):
+        u = self.username.text()
+        p = self.password.text()
+        print(f'trying login with {u}')
+        set_username(u)
+        try:
+            self.appWindow.session = login(u, p)
+            set_password(u, p)
+            self.hide()
+            self.appWindow.show()
+            self.appWindow.do_refresh_games()
+        except ConnectionException as e:
+            QMessageBox.warning(self, "Kirjautumisvirhe", f"Kirjautuminen epäonnistui:\n{e.msg} {e.status_code}",
+                                QMessageBox.Ok)
+
+    def _prepare_user_and_pass(self):
+        username = get_username()
+        if username:
+            self.username.setText(username)
+            password = get_password(username)
+            if password:
+                self.password.setText(password)
+
 
 class VakioMax(QDialog):
 
@@ -21,38 +82,16 @@ class VakioMax(QDialog):
         super(VakioMax, self).__init__(parent)
 
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self._login_layout())
         main_layout.addWidget(self._game_layout())
         self._connect_events()
-        self._prepare_user_and_pass()
 
         self.setLayout(main_layout)
         self.setWindowTitle("VakioMax 4")
+        self.send_btn.setEnabled(False)
+        self.game_layout_container.setEnabled(True)
+        self.game_combo_box.setFocus()
+        self.game_layout_container.show()
 
-    def _login_layout(self):
-        login_container = QWidget()
-        login_layout = QHBoxLayout(login_container)
-        username = QLineEdit()
-        u_label = QLabel("&Käyttäjätunnus:")
-        u_label.setBuddy(username)
-
-        password = QLineEdit()
-        password.setEchoMode(QLineEdit.Password)
-        p_label = QLabel("Salasana:")
-        p_label.setBuddy(password)
-
-        login_layout.addWidget(u_label)
-        login_layout.addWidget(username)
-        login_layout.addWidget(p_label)
-        login_layout.addWidget(password)
-        login_btn = QPushButton('Login')
-        login_layout.addWidget(login_btn)
-
-        self.login_container = login_container
-        self.login_btn = login_btn
-        self.username = username
-        self.password = password
-        return login_container
 
     def _game_layout(self):
         game_layout_container = QWidget()
@@ -91,19 +130,11 @@ class VakioMax(QDialog):
         return game_layout_container
 
     def _connect_events(self):
-        self.login_btn.clicked.connect(self.do_login)
         self.send_btn.clicked.connect(self.do_send_rows)
         self.game_combo_box.currentIndexChanged.connect(self.enable_text_when_value_selected)
         self.game_combo_box.currentIndexChanged.connect(self.check_row_validity)
         self.text_edit.textChanged.connect(self.check_row_validity)
 
-    def _prepare_user_and_pass(self):
-        username = get_username()
-        if username:
-            self.username.setText(username)
-            password = get_password(username)
-            if password:
-                self.password.setText(password)
 
     def check_row_validity(self):
         current_game_option: GameOption = self.game_combo_box.currentData()
@@ -122,24 +153,6 @@ class VakioMax(QDialog):
     def enable_text_when_value_selected(self):
         data = self.game_combo_box.currentData()
         self.game_send_layout_container.setEnabled(True if data else False)
-
-    def do_login(self):
-        u = self.username.text()
-        p = self.password.text()
-        print(f'trying login with {u}')
-        set_username(u)
-        try:
-            self.session = login(u, p)
-            self.login_container.hide()
-            self.do_refresh_games()
-            self.game_layout_container.setEnabled(True)
-            self.send_btn.setEnabled(False)
-            self.game_combo_box.setFocus()
-            self.game_layout_container.show()
-            set_password(u, p)
-        except ConnectionException as e:
-            QMessageBox.warning(self, "Kirjautumisvirhe", f"Kirjautuminen epäonnistui:\n{e.msg} {e.status_code}",
-                                QMessageBox.Ok)
 
     def do_refresh_games(self):
         options = draws_to_options(refresh_games(self.session))
@@ -209,6 +222,8 @@ if __name__ == '__main__':
     appctxt = ApplicationContext()
     app = QApplication.instance()
     app.setStyle('Fusion')
+
     vakiomax = VakioMax()
-    vakiomax.show()
+    loginDialog = LoginDialog(appWindow = vakiomax)
+    loginDialog.show()
     sys.exit(appctxt.app.exec_())
