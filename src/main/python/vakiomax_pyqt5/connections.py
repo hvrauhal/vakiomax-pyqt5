@@ -23,12 +23,15 @@ class ConnectionException(Exception):
 def login(username, password):
     s = requests.Session()
     login_req = {"type": "STANDARD_LOGIN", "login": username, "password": password}
-    r = s.post(host + "/api/bff/v1/sessions", verify=True, json=login_req, headers=headers)
-    if r.status_code == 200:
-        print(f'Login successful, {username} logged in')
-        return s
-    else:
-        raise ConnectionException("Authentication failed", r.status_code)
+    try:
+        r = s.post(host + "/api/bff/v1/sessions", verify=True, json=login_req, headers=headers)
+        if r.status_code == 200:
+            print(f'Login successful, {username} logged in')
+            return s
+        else:
+            raise ConnectionException("Authentication failed", r.status_code)
+    except Exception as e:
+        raise ConnectionException("Connection failed", e)
 
 
 def refresh_games(session):
