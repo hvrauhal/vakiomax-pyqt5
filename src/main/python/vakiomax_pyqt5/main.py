@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from PyQt5.QtGui import QFontDatabase, QFont
-from PyQt5.QtWidgets import (QDialog, QComboBox, QLabel, QHBoxLayout, QTextEdit, QPushButton, QLineEdit,
+from PyQt5.QtWidgets import (QApplication, QDialog, QComboBox, QLabel, QHBoxLayout, QTextEdit, QPushButton, QLineEdit,
                              QWidget, QVBoxLayout, QMessageBox)
 from fbs_runtime.application_context.PyQt5 import ApplicationContext
 
@@ -46,7 +46,6 @@ class VakioMax(QDialog):
         login_layout.addWidget(p_label)
         login_layout.addWidget(password)
         login_btn = QPushButton('Login')
-        login_btn.setDefault(True)
         login_layout.addWidget(login_btn)
 
         self.login_container = login_container
@@ -208,6 +207,8 @@ def set_username(username):
 
 if __name__ == '__main__':
     appctxt = ApplicationContext()
+    app = QApplication.instance()
+    app.setStyle('Fusion')
     vakiomax = VakioMax()
     vakiomax.show()
     sys.exit(appctxt.app.exec_())
